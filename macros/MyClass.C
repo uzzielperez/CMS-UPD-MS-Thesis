@@ -85,8 +85,10 @@ void MyClass::Loop()
    TH1F *qqbarstable = new TH1F("qqbarstable", "qqbar genstable", 100, -1.1, 1.1);  
    TH1F *ggUnstable = new TH1F("ggUnstable", "gg genUnstable", 100, -1.1, 1.1);
    TH1F *qqbarUnstable = new TH1F("qqbarUnstable", "qqbar genUnstable", 100, -1.1, 1.1);  
-   
-      
+   TH1F *old1 = new TH1F("old1", "ALLcosThetStarold", 100, -1.05, 1.05 ); 
+   TH1F *old2 = new TH1F("old2", "HighPTcosThetaStarold", 100, -1.05, 1.05);
+   TH1F *ggold = new TH1F("ggold", "gg cosThetaStarold",100, -1.05,1.05);
+   TH1F *qqold = new TH1F("qqold", "qqbar cosThetaStarold",100, -1.05,1.05);   
        //===== Counters
    int N_total = 0;
    int N_diphoton = 0;
@@ -113,6 +115,8 @@ void MyClass::Loop()
      N_total++;
       
      h1->Fill(Diphoton_cosThetaStar, Event_weight);
+     old1->Fill(Diphoton_cosThetaStarOld, Event_weight);
+
      //========GEN UNSTABLE 
         if (Event_interactingParton1PdgId == 21 && Event_interactingParton2PdgId == 21){
             ggUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);  
@@ -126,6 +130,7 @@ void MyClass::Loop()
      //============== EVENTS WITH 2 RECO PHOTONS
      if ((Photon1_passHighPtID>=1)&& (Photon2_passHighPtID>=1)) continue;  
      h2->Fill(Diphoton_cosThetaStar, Event_weight);
+     old2->Fill(Diphoton_cosThetaStarOld, Event_weight);
      N_diphoton++;
      
            
@@ -136,7 +141,8 @@ void MyClass::Loop()
            gg->Fill(Diphoton_cosThetaStar, Event_weight);
            ggstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
           // ggUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
-          
+           ggold->Fill(Diphoton_cosThetaStarOld, Event_weight);
+
            N_gluglu++;
            N_gggenunstable++;
            N_ggstable++; 
@@ -146,6 +152,7 @@ void MyClass::Loop()
           qq->Fill(Diphoton_cosThetaStar, Event_weight);
           qqbarstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
           //qqbarUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
+          qqold->Fill(Diphoton_cosThetaStarOld, Event_weight);
 
 
           N_qqbar++;
@@ -343,7 +350,28 @@ void MyClass::Loop()
   
       qqbarUnstable->SetLineColor(kRed-2); 
       qqbarUnstable->Draw();
- 
+
+
+//==== CosThetaStarOld 
+     TCanvas *old = new TCanvas("ALLcosthetaStarOld", "", 800, 600); 
+     
+      old1->SetLineColor(kBlue+1);
+      old1->Draw();
+    
+    TCanvas *old_theta = new TCanvas("HighPTcosthetaStarOld", "", 800, 600); 
+      
+      old2->SetLineColor(kRed-2);
+      old2->Draw();
+  
+    TCanvas *gg_old = new TCanvas("gg_costhetastarold", "", 800, 600);
+      
+      ggold->SetLineColor(kBlue+1); 
+      ggold->Draw();
+    
+    TCanvas *qq_old = new TCanvas("qq_costhetastarold", "", 800, 600);
+  
+      qqold->SetLineColor(kRed-2); 
+      qqold->Draw();
 
 //============== CMS Logo and Lumi
    //CMS_lumi(canvas, iPeriod, iPos);
@@ -351,7 +379,10 @@ void MyClass::Loop()
    CMS_lumi(ggcosThetaStar, 0, 11); 
  //  CMS_lumi(cosThetaStar2, 0,11);
  //  CMS_lumi(cosThetaStar1, 0,11);
-
+   CMS_lumi(old, 0, 11);
+   CMS_lumi(old_theta, 0, 11);
+   CMS_lumi(gg_old, 0, 11);
+   CMS_lumi(qq_old, 0, 11);
 
    TFile *f = new TFile("RSGSpinAnalysis.root","RECREATE");
   
@@ -364,6 +395,10 @@ void MyClass::Loop()
    qqbarUnstable->Write();
    ggstable->Write();
    ggUnstable->Write();
+   old1->Write();
+   old2->Write();
+   ggold->Write();
+   ggold->Write();
 
    f->cd();
    f->Close();
