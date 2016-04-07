@@ -89,7 +89,12 @@ void MyClass::Loop()
    TH1F *old2 = new TH1F("old2", "HighPTcosThetaStarold", 100, -1.05, 1.05);
    TH1F *ggold = new TH1F("ggold", "gg cosThetaStarold",100, -1.05,1.05);
    TH1F *qqold = new TH1F("qqold", "qqbar cosThetaStarold",100, -1.05,1.05);   
-       //===== Counters
+   TH1F *genall = new TH1F("genall", "ALL GEN", 100, -1.05, 1.05); 
+   TH1F *genallstable = new TH1F("genallstable", "ALL GEN", 100, -1.05, 1.05);
+   TH1F *ggplus = new TH1F("ggplus", "gg pt>0", 100, -1.05, 1.05);
+   TH1F *qqbarplus = new TH1F("qqbarplus", "qq pt>0", 100, -1.05, 1.05);
+
+   //===== Counters
    int N_total = 0;
    int N_diphoton = 0;
    int total_selected = 0;
@@ -113,10 +118,25 @@ void MyClass::Loop()
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
      N_total++;
-      
-     h1->Fill(Diphoton_cosThetaStar, Event_weight);
+     /////////////
+     //
+     //
+     //
+     //
+     ////////////ALL 
+    genall->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
+    if ((Photon1_pt>0) && (Photon2_pt>0)){  
+     h1->Fill(Diphoton_cosThetaStar, Event_weight); 
      old1->Fill(Diphoton_cosThetaStarOld, Event_weight);
-
+    }
+   // if ((StablePhoton1_pt>0) && (StablePhoton2_pt>0)){
+     genallstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
+   //}
+     ////////////////////////////////////////////////////////////////////////////////////
+     //
+     //
+     //
+     ///////////////////////// PARTON INTERACTIONS ////////////////////////////////////
      //========GEN UNSTABLE 
         if (Event_interactingParton1PdgId == 21 && Event_interactingParton2PdgId == 21){
             ggUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);  
@@ -125,39 +145,54 @@ void MyClass::Loop()
              qqbarUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
         }
 
-    
-
      //============== EVENTS WITH 2 RECO PHOTONS
-     if ((Photon1_passHighPtID>=1)&& (Photon2_passHighPtID>=1)) continue;  
-     h2->Fill(Diphoton_cosThetaStar, Event_weight);
-     old2->Fill(Diphoton_cosThetaStarOld, Event_weight);
-     N_diphoton++;
-     
+     if ((Photon1_passHighPtID>=1)&& (Photon2_passHighPtID>=1)) continue; 
+        h2->Fill(Diphoton_cosThetaStar, Event_weight);// highpass ALL
+        old2->Fill(Diphoton_cosThetaStarOld, Event_weight);
+        N_diphoton++;
+    
            
       //============= INTERACTING PARTONS
       //GLUON FUSION
+      //pt > 0 qqbar annihilation and gg fusion 
+     if ((Photon1_pt>0) && (Photon2_pt>0)){ 
+           if (Event_interactingParton1PdgId == 21 && Event_interactingParton2PdgId == 21){ 
+              ggplus->Fill(Diphoton_cosThetaStar, Event_weight); 
+           }
+           else{
+              qqbarplus->Fill(Diphoton_cosThetaStar, Event_weight);
+           }
+     }
+     //Highpass 
       if ((Photon1_passHighPtID>=1)&& (Photon2_passHighPtID>=1)) continue;
-        if (Event_interactingParton1PdgId == 21 && Event_interactingParton2PdgId == 21){
-           gg->Fill(Diphoton_cosThetaStar, Event_weight);
-           ggstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
-          // ggUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
-           ggold->Fill(Diphoton_cosThetaStarOld, Event_weight);
+        if (Event_interactingParton1PdgId == 21 && Event_interactingParton2PdgId == 21){ 
+             N_gluglu++;
+             ggold->Fill(Diphoton_cosThetaStarOld, Event_weight);
+             gg->Fill(Diphoton_cosThetaStar, Event_weight); 
+          if ((StablePhoton1_pt>0) && (StablePhoton2_pt>0)){ 
+             ggstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);    
+           }
+           else continue;
+           // ggUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
 
-           N_gluglu++;
-           N_gggenunstable++;
-           N_ggstable++; 
+           //N_gluglu++;
+           //N_gggenunstable++;
+          // N_ggstable++; 
          }
       //QUARK ANNIHILATION
-        else{
-          qq->Fill(Diphoton_cosThetaStar, Event_weight);
-          qqbarstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
+        else{ 
+               N_qqbar++;
+               qq->Fill(Diphoton_cosThetaStar, Event_weight);
+               qqold->Fill(Diphoton_cosThetaStarOld, Event_weight);
+           if ((StablePhoton1_pt>0) && (StablePhoton2_pt>0)){  
+               qqbarstable->Fill(GenDiphotonStable_cosThetaStar, Event_weight);
+                        }
+          else continue;
           //qqbarUnstable->Fill(GenDiphotonUnstable_cosThetaStar, Event_weight);
-          qqold->Fill(Diphoton_cosThetaStarOld, Event_weight);
 
-
-          N_qqbar++;
-          N_qqgenunstable++;
-          N_qqstable++;
+         // N_qqbar++;
+         // N_qqgenunstable++;
+         // N_qqstable++;
           cout << "Interacting Partons" << " " << Event_interactingParton1PdgId << " " << Event_interactingParton2PdgId << endl;
           }
 
@@ -176,9 +211,18 @@ void MyClass::Loop()
    cout << "number of qqbar initiated events" << " " << Event_interactingParton2PdgId << " " << N_qqbar << endl;
    cout << "Reco Diphoton" << " " << N_diphoton << " " << "vs " << N_qqbar + N_gluglu << " Sum of gg & qqbar initiated events" << endl;
 
-  
-   //===============ALL EVENTS
- /*  TCanvas *cosThetaStar1 = new TCanvas("cosThetaStardistribution", "", 800, 600);
+   /////////////////////FIT THESE EQUATIONS//////////////////////////
+   //
+   //
+   //
+   /////////////////////////////////////////////////////////////////
+
+   TF1 *ctsgg = new TF1("ctsgg", "[0]*(1+6*pow(x,2)+pow(x,4))",-1,1);
+   TF1 *ctsqq = new TF1("ctsqq", "[0]*(1-pow(x,4))", -1,1);
+    
+   //===============ALL EVENTS PT<0 
+   TCanvas *cosThetaStar1 = new TCanvas("cosThetaStardistribution", "", 800, 600);
+   CMS_lumi(cosThetaStar1, 0, 11);
    h1->Draw();
    cosThetaStar1->SetBorderMode(0);
    cosThetaStar1->SetGrid();
@@ -190,8 +234,10 @@ void MyClass::Loop()
    h1->GetYaxis()->SetTitle("Events");
    h1->GetXaxis()->SetTitle("cos#theta*");
    
-   //=============== ALL RECO PHOTONS
+   //=============== ALL RECO PHOTONS HIGH PASS PT 
    TCanvas *cosThetaStar2 = new TCanvas("cosThetaStardist", "", 800, 600);
+   
+   CMS_lumi(cosThetaStar2, 0, 11);
    h2->Draw(); 
    cosThetaStar2->SetLeftMargin(0.15);
    cosThetaStar2->SetBottomMargin(0.15);
@@ -200,9 +246,34 @@ void MyClass::Loop()
    
    h2->GetYaxis()->SetTitle("Events");
    h2->GetXaxis()->SetTitle("cos#theta*");
-*/ 
-   //=========== GLUON FUSION 
+ 
+  
+  ////////////////RECO PHOTONS////////////////////////// 
+  //                                                  //
+  //                                                  //  
+  //                                                  //
+  /////////////////PLOT HERE////////////////////////////
+
+   //=========== GLUON FUSION
+   //---PT>0
+   TCanvas *gghigh = new TCanvas("gghigh", "", 800, 600);
+  
+   CMS_lumi(gghigh, 0, 11);
+
+   ggplus->Draw();
+   gghigh->SetLeftMargin(0.15);
+   gghigh->SetBottomMargin(0.15);
+   ggplus->SetFillColor(kOrange-3);
+   ggplus->GetYaxis()->SetTitle("Events");
+   ggplus->GetXaxis()->SetTitle("cos#theta*");
+   ggplus->SetLineColor(kOrange+7);
+
+   
+   //---HIGH PASS
    TCanvas *ggcosThetaStar = new TCanvas("ggcosThetStar", "", 800, 600);
+  
+   CMS_lumi(ggcosThetaStar, 0, 11);
+
    gg->Draw();
    ggcosThetaStar->SetLeftMargin(0.15);
    ggcosThetaStar->SetBottomMargin(0.15);
@@ -215,19 +286,37 @@ void MyClass::Loop()
     //TF1 *thcosqq = new TF1("thcosqq","1-pow(cos(x),4)",-TMath::Pi(),TMath::Pi()); 
     //TF1 *thcosgg = new TF1("thcosgg", "1+6*pow(cos(x),2)+pow(cos(x),4)", -TMath::Pi(), TMath::Pi()); 
     //TF1 *ctsgg = new TF1("ctsgg", "1+6*pow(x,2)+pow(x,4)",-1,1);
-    TF1 *ctsgg = new TF1("ctsgg", "[0]*(1+6*pow(x,2)+pow(x,4))",-1,1);
    // ctsgg->SetParameters(500, gg->GetMean(), gg->GetRMS());
       //qq->Fit("ctsqq");
       //gg->Fit("ctsgg","R");
-      gg->Fit("ctsgg");
+
+    /////////////////////////
+    //
+    ///////RECO FIT////////////
+     /* gg->Fit("ctsgg");
       gStyle->SetOptFit(1111);
       //ctsgg->SetParameters(1,1);
       //gg->Fit("gaus");
       ctsgg->SetLineColor(kOrange+10); 
       //ctsgg->SetLineWidth(2);
       ctsgg->Draw("same");
-  
+  */
    //============ QUARK ANNIHILATION
+   //---PT>0 
+   TCanvas *qqbarhigh = new TCanvas("qqbarhigh", "", 800, 600);
+  
+   CMS_lumi(qqbarhigh, 0, 11);
+
+   qqbarplus->Draw();
+   qqbarhigh->SetLeftMargin(0.15);
+   qqbarhigh->SetBottomMargin(0.15);
+   qqbarplus->SetFillColor(kOrange-3);
+   qqbarplus->GetYaxis()->SetTitle("Events");
+   qqbarplus->GetXaxis()->SetTitle("cos#theta*");
+   qqbarplus->SetLineColor(kOrange+7);
+ 
+
+   //---HIGH PASS
    TCanvas *qqbarcosThetaStar = new TCanvas("qqbarcosThetaStar", "", 800, 600);
       qqbarcosThetaStar->SetBottomMargin(0.15);
       qq->SetFillColor(kOrange-3);
@@ -235,15 +324,23 @@ void MyClass::Loop()
       qq->GetXaxis()->SetTitle("cos#theta*");
       qq->SetLineColor(kOrange+7); 
       qq->Draw("same");
-    
-      TF1 *ctsqq = new TF1("ctsqq", "[0]*(1-pow(x,4))", -1,1);
-      ctsqq->SetParameters(500, qq->GetMean(), qq->GetRMS());
+     
+      //////////
+      //
+      /////////RECO FIT 
+      /*ctsqq->SetParameters(500, qq->GetMean(), qq->GetRMS());
       qq->Fit("ctsqq");
       gStyle->SetOptFit(1111);
       ctsqq->SetLineColor(kOrange+10);
       ctsqq->Draw("same");
+      */
 
-  
+      ////////END RECO PHOTONS PLOTTING 
+      ////////END RECO PHOTONS PLOTTING 
+
+      ////////////////////////////////////////////////////////////////////////
+      //scratch
+   
 /*    TCanvas *functions = new TCanvas("functions", "", 800, 600);
     ctsqq->Draw();
    // ctsgg->Draw("same");   
@@ -328,61 +425,197 @@ void MyClass::Loop()
 //      leg->cd();
 
 */
+/////////////////////////////////////////////////////////////////
+//
+//
+//
+//
+//
+////////////////// SEPARATE GEN PHOTON PLOTS ////////////////////
+/////////////////
+//
+//GEN Unstable ALL
+    
+   TCanvas *GENALL = new TCanvas("GENALL", "", 800, 600);
+    
+    CMS_lumi(GENALL, 0, 11);
+    genall->SetLineColor(kOrange+10);
+    genall->Draw();
+    GENALL->SetLeftMargin(0.15);
+    GENALL->SetBottomMargin(0.15);
+    genall->SetFillColor(kOrange-3);
+    genall->GetYaxis()->SetTitle("Events");
+    genall->GetXaxis()->SetTitle("cos#theta*");
 
-//==== SEPARATE GEN PHOTON PLOTS   
+//GEN Stable ALL
+
+    TCanvas *GENALLST = new TCanvas("GENALLST", "", 800, 600);
+    
+    CMS_lumi(GENALLST, 0, 11);
+    genallstable->SetLineColor(kOrange+10);
+    genallstable->Draw();
+    GENALLST->SetLeftMargin(0.15);
+    GENALLST->SetBottomMargin(0.15);
+    genallstable->SetFillColor(kOrange-3);
+    genallstable->GetYaxis()->SetTitle("Events");
+    genallstable->GetXaxis()->SetTitle("cos#theta*");
+
+//////////////
+//
+//GLUON FUSION 
     TCanvas *GENggstable = new TCanvas("GENggstable", "", 800, 600); 
-     
+   
+      TF1 *gg_st = new TF1("gg_st", "[3]*(1+6*pow(x,2)+pow(x,4))",-1,1); 
+      CMS_lumi(GENggstable, 0, 11);
       ggstable->SetLineColor(kBlue+1);
       ggstable->Draw();
-  
-    
+      
+      ggstable->Fit("gg_st");
+      gStyle->SetOptFit(1111);
+      gg_st->SetLineColor(kOrange+10);
+      gg_st->Draw("same");
+/*
+      ggstable->Fit("ctsgg");
+*/
+      GENggstable->SetLeftMargin(0.15);
+      GENggstable->SetBottomMargin(0.15);
+      ggstable->SetFillColor(kOrange-3);
+      ggstable->GetYaxis()->SetTitle("Events");
+      ggstable->GetXaxis()->SetTitle("cos#theta*");
+////////////
+//
+//
+ 
     TCanvas *GENggUnstable = new TCanvas("GENggUnstable", "", 800, 600); 
+         
+      TF1 *gg_uns = new TF1("gg_unstable", "[0]*(1+6*pow(x,2)+pow(x,4))",-1,1);
+      CMS_lumi(GENggUnstable, 0, 11);
       
       ggUnstable->SetLineColor(kRed-2);
       ggUnstable->Draw();
-  
+    //  ggUnstable->Fit("gg_uns");
+/// GOOD FIT 
+      ggUnstable->Fit("ctsgg");
+      gStyle->SetOptFit(1111);
+      ctsgg->SetLineColor(kOrange+10);
+      ctsgg->Draw("same");
+ 
+      GENggUnstable->SetLeftMargin(0.15);
+      GENggUnstable->SetBottomMargin(0.15);
+      ggUnstable->SetFillColor(kOrange-3);
+      ggUnstable->GetYaxis()->SetTitle("Events");
+      ggUnstable->GetXaxis()->SetTitle("cos#theta*");
+//////////
+//
+//QQBAR 
     TCanvas *GENqqbarstable = new TCanvas("GENqqbarstable", "", 800, 600);
-      
+     
+      CMS_lumi(GENqqbarstable, 0, 11);      
+      TF1 *qq_st = new TF1("qq_st", "[2]*(1-pow(x,4))", -1,1);
       qqbarstable->SetLineColor(kBlue+1); 
       qqbarstable->Draw();
-    
+      qqbarstable->Fit("qq_st");
+     // qqbarstable->Fit("ctsqq");
+      gStyle->SetOptFit(1111);
+      //ctsqq->SetLineColor(kOrange+10);
+     // ctsqq->Draw("same");
+      GENqqbarstable->SetLeftMargin(0.15);
+      GENqqbarstable->SetBottomMargin(0.15);
+      qqbarstable->SetFillColor(kOrange-3);
+      qqbarstable->GetYaxis()->SetTitle("Events");
+      qqbarstable->GetXaxis()->SetTitle("cos#theta*");
+//unstable qqbar    
     TCanvas *GENqqbarunstable = new TCanvas("GENqqbarunstable", "", 800, 600);
   
+      CMS_lumi(GENqqbarunstable, 0, 11);
+      TF1 *qq_uns = new TF1("qq_unstable", "[0]*(1-pow(x,4))",-1,1);
       qqbarUnstable->SetLineColor(kRed-2); 
       qqbarUnstable->Draw();
+      //qqbarUnstable->Fit("qq_uns");
+      qqbarUnstable->Fit("ctsqq");
+      gStyle->SetOptFit(1111);
+      ctsqq->SetLineColor(kOrange+10);
+      ctsqq->Draw("same");
+      GENqqbarunstable->SetLeftMargin(0.15);
+      GENqqbarunstable->SetBottomMargin(0.15);
+      qqbarUnstable->SetFillColor(kOrange-3);
+      qqbarUnstable->GetYaxis()->SetTitle("Events");
+      qqbarUnstable->GetXaxis()->SetTitle("cos#theta*");
 
+/////////////////END OF GEN DIPHOTONS PLOT
+//
+//
+//
+//
+//=============================================================
 
-//==== CosThetaStarOld 
+///////////////////////COSTHETASTAROLD
+//
+//
+//
+/////////////////////////////////////////////////////////////////////
+
+//==== CosThetaStarOld
+/* 
      TCanvas *old = new TCanvas("ALLcosthetaStarOld", "", 800, 600); 
      
       old1->SetLineColor(kBlue+1);
       old1->Draw();
+
+      old->SetLeftMargin(0.15);
+      old->SetBottomMargin(0.15);
+      old1->SetFillColor(kOrange-3);
+      old1->GetYaxis()->SetTitle("Events");
+      old1->GetXaxis()->SetTitle("cos#theta*");
     
     TCanvas *old_theta = new TCanvas("HighPTcosthetaStarOld", "", 800, 600); 
       
       old2->SetLineColor(kRed-2);
       old2->Draw();
-  
+ 
+      old_theta->SetLeftMargin(0.15);
+      old_theta->SetBottomMargin(0.15);
+      old2->SetFillColor(kOrange-3);
+      old2->GetYaxis()->SetTitle("Events");
+      old2->GetXaxis()->SetTitle("cos#theta*");
+
     TCanvas *gg_old = new TCanvas("gg_costhetastarold", "", 800, 600);
-      
+       
       ggold->SetLineColor(kBlue+1); 
       ggold->Draw();
-    
+
+      gg_old->SetLeftMargin(0.15);
+      gg_old->SetBottomMargin(0.15);
+      ggold->SetFillColor(kOrange-3);
+      ggold->GetYaxis()->SetTitle("Events");
+      ggold->GetXaxis()->SetTitle("cos#theta*");
+
     TCanvas *qq_old = new TCanvas("qq_costhetastarold", "", 800, 600);
   
       qqold->SetLineColor(kRed-2); 
       qqold->Draw();
 
+      qq_old->SetLeftMargin(0.15);
+      qq_old->SetBottomMargin(0.15);
+      qqold->SetFillColor(kOrange-3);
+      qqold->GetYaxis()->SetTitle("Events");
+      qqold->GetXaxis()->SetTitle("cos#theta*");
+*/
+
+
+////////////////////////////////////////////////////////////
+//
+//
+//
+////////////////////////////////////////////////////////////
 //============== CMS Logo and Lumi
    //CMS_lumi(canvas, iPeriod, iPos);
-   CMS_lumi(qqbarcosThetaStar, 0, 11); 
-   CMS_lumi(ggcosThetaStar, 0, 11); 
+   //CMS_lumi(qqbarcosThetaStar, 0, 11); 
+   //CMS_lumi(ggcosThetaStar, 0, 11); 
  //  CMS_lumi(cosThetaStar2, 0,11);
  //  CMS_lumi(cosThetaStar1, 0,11);
-   CMS_lumi(old, 0, 11);
-   CMS_lumi(old_theta, 0, 11);
-   CMS_lumi(gg_old, 0, 11);
-   CMS_lumi(qq_old, 0, 11);
+   //CMS_lumi(old, 0, 11);
+  // CMS_lumi(old_theta, 0, 11);
 
    TFile *f = new TFile("RSGSpinAnalysis.root","RECREATE");
   
@@ -399,7 +632,28 @@ void MyClass::Loop()
    old2->Write();
    ggold->Write();
    ggold->Write();
+   genall->Write();
+   genallstable->Write();
+   ggplus->Write();
+   qqbarplus->Write();
 
+   /*
+   //save as pdf 
+   h1->SaveAs("C1.pdf");
+   h2->SaveAs("C2.pdf"); 
+   gg->SaveAs("C3.pdf");
+   qq->SaveAs("C4.pdf");
+   ggplus->SaveAs("C5.pdf");
+   qqbarplus->SaveAs("C6.pdf");
+ 
+   genallstable->SaveAs("B1.pdf");
+   qqbarstable->SaveAs("B2.pdf");
+   ggstable->SaveAs("B3.pdf");
+
+   genall->SaveAs("A1.pdf");
+   qqbarUnstable->SaveAs("A2.pdf");
+   ggUnstable->SaveAs("A3.pdf");
+   */
    f->cd();
    f->Close();
 }//end of method
